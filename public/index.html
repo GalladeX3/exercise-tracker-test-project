@@ -1,1 +1,124 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Exercise Tracker – Quick Tester</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 2rem; max-width: 800px }
+      h1 { margin-top: 0 }
+      form { margin: 1rem 0; padding: 1rem; border: 1px solid #ddd; border-radius: 8px }
+      label { display:block; margin:.5rem 0 .25rem }
+      input { width: 100%; padding: .5rem; }
+      code { background: #f6f8fa; padding: .2rem .4rem; border-radius: 4px }
+      .row { display:grid; grid-template-columns: 1fr 1fr; gap: 1rem }
+      button { margin-top: .75rem; padding: .6rem 1rem; }
+      hr { margin: 2rem 0 }
+    </style>
+  </head>
+  <body>
+    <h1>Exercise Tracker</h1>
+
+    <form action="/api/users" method="post">
+      <h2>Create User</h2>
+      <label>username</label>
+      <input name="username" required />
+      <button type="submit">POST /api/users</button>
+    </form>
+
+    <form onsubmit="event.preventDefault(); fetchUsers();">
+      <h2>List Users</h2>
+      <button type="submit">GET /api/users</button>
+    </form>
+    <pre id="users"></pre>
+
+    <hr />
+
+    <form id="exForm">
+      <h2>Add Exercise</h2>
+      <div class="row">
+        <div>
+          <label>User _id</label>
+          <input name="_id" required />
+        </div>
+        <div>
+          <label>Description</label>
+          <input name="description" required />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Duration (minutes)</label>
+          <input name="duration" type="number" min="1" required />
+        </div>
+        <div>
+          <label>Date (yyyy-mm-dd, optional)</label>
+          <input name="date" type="date" />
+        </div>
+      </div>
+      <button>Add → POST /api/users/:_id/exercises</button>
+    </form>
+    <pre id="exRes"></pre>
+
+    <hr />
+
+    <form id="logForm">
+      <h2>Get Logs</h2>
+      <div class="row">
+        <div>
+          <label>User _id</label>
+          <input name="_id" required />
+        </div>
+        <div>
+          <label>limit</label>
+          <input name="limit" type="number" min="1" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>from (yyyy-mm-dd)</label>
+          <input name="from" type="date" />
+        </div>
+        <div>
+          <label>to (yyyy-mm-dd)</label>
+          <input name="to" type="date" />
+        </div>
+      </div>
+      <button>GET /api/users/:_id/logs</button>
+    </form>
+    <pre id="logRes"></pre>
+
+    <script>
+      async function fetchUsers() {
+        const r = await fetch('/api/users');
+        document.getElementById('users').textContent = JSON.stringify(await r.json(), null, 2);
+      }
+
+      document.getElementById('exForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const _id = fd.get('_id');
+        const body = new URLSearchParams({
+          description: fd.get('description'),
+          duration: fd.get('duration'),
+          date: fd.get('date') || ''
+        });
+        const r = await fetch(`/api/users/${_id}/exercises`, { method: 'POST', body });
+        document.getElementById('exRes').textContent = JSON.stringify(await r.json(), null, 2);
+      });
+
+      document.getElementById('logForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const _id = fd.get('_id');
+        const qs = new URLSearchParams();
+        if (fd.get('from')) qs.set('from', fd.get('from'));
+        if (fd.get('to')) qs.set('to', fd.get('to'));
+        if (fd.get('limit')) qs.set('limit', fd.get('limit'));
+        const r = await fetch(`/api/users/${_id}/logs?` + qs.toString());
+        document.getElementById('logRes').textContent = JSON.stringify(await r.json(), null, 2);
+      });
+    </script>
+  </body>
+</html>
 
